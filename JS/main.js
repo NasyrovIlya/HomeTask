@@ -12,12 +12,9 @@
 
 let obj = {}
 
-function getData(url = 'https://www.cbr-xml-daily.ru/daily_json.js') {
-  fetch(url).then(function (response) {
-    response.text().then(function (text) {
-      obj = JSON.parse(text);
-    });
-  });
+async function getData(url = 'https://www.cbr-xml-daily.ru/daily_json.js') {
+  const responce = await fetch(url);
+  obj = await responce.json();
   return obj;
 }
 
