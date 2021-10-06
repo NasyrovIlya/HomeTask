@@ -18,7 +18,7 @@ async function getData() {
     const responce = await fetch(URLDATA);
     return await responce.json();
   } catch (e) {
-    alert('Ошибка ' + e.name + ":" + e.message + "\n" + e.stack);
+    alert(`Произошла ошибка: ${e.message}`);
   }
 }
 
