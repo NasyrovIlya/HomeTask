@@ -10,35 +10,56 @@
 // Так же предусмотреть обработку ошибок от сервера.
 // Сделать отрисовку кнопок по всем валютам, по нажатии на одну из них, отрисовывать инфу именно по необходимой валюте.
 
-let obj = {}
+const URLDATA = 'https://www.cbr-xml-daily.ru/daily_json.js';
+let obj = {};
 
-async function getData(url = 'https://www.cbr-xml-daily.ru/daily_json.js') {
-  const responce = await fetch(url);
-  obj = await responce.json();
-  return obj;
+async function getData() {
+  try {
+    const responce = await fetch(URLDATA);
+    return await responce.json();
+  } catch (e) {
+    alert('Ошибка ' + e.name + ":" + e.message + "\n" + e.stack);
+  }
 }
 
-document.addEventListener('click', event => {
+document.addEventListener('click', async (event) => {
   if (event.target.closest('.nav__link')) {
-    getData('https://www.cbr-xml-daily.ru/daily_json.js');
+    clearValute();
+    obj = await getData();
     Object.values(obj.Valute).forEach(item => {
       document.querySelector('main').insertAdjacentHTML('beforeEnd', printValute(item));
     })
   }
-  if (event.target.closest('.btn')) {
-    if (event.target.hasAttribute('id')) {
-      let filterObj = {}
-
-      filterObj = Object.values(obj.Valute).filter(item => {
-        if (item.ID === event.target.getAttribute('id')) {
-          return item;
-        }
-      });
-      console.log(filterObj);
-    }
+  if ((event.target.closest('.btn')) && (event.target.hasAttribute('id'))) {
+    let filterObj = Object.values(obj.Valute).filter(item => {
+      if (item.ID === event.target.getAttribute('id')) {
+        return item;
+      }
+    });
+    document.getElementById('popup').classList.add('open');
+    document.querySelector('.popup__content').insertAdjacentHTML('beforeend', prinyValuteElement(filterObj[0]));
+  }
+  if (event.target.closest('.popup__close')) {
+    event.preventDefault();
+    document.getElementById('popup').classList.remove('open');
+    document.getElementById('pupup__valute').remove();
   }
 })
 
+function clearValute() {
+  document.querySelectorAll('.main__wrapper').forEach(elem => elem.remove());
+}
+
+function prinyValuteElement(item) {
+  return `
+    <div id = "pupup__valute">
+      <h1>${item.Name}</h1>
+      <h2>${item.CharCode}</h2>
+      <p>Предыдущий: ${item.Previous}</p>
+      <p>Текущий: ${item.Value}</p>
+    </div>
+  `;
+}
 
 function printValute(item) {
   return `
