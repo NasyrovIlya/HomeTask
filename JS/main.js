@@ -12,7 +12,6 @@
 // отрисовывать инфу именно по необходимой валюте.
 
 const URLDATA = 'https://www.cbr-xml-daily.ru/daily_json.js';
-let obj = {};
 
 async function getData() {
   try {
@@ -22,18 +21,35 @@ async function getData() {
   catch (error) {
     showPopupMessage(`Произошла ошибка при получении данных: ${error.message}`);
   }
-  return null;
+  return [];
+}
+
+function isFreshData() {
+  let localDate = JSON.parse(localStorage.getItem('Valute'));
+  let today = new Date();
+  let dateLocal = new Date(localDate.Date);
+  today = `${today.getFullYear()}-${today.getMonth()}-${today.getDay()}`;
+  dateLocal = `${dateLocal.getFullYear()}-${dateLocal.getMonth()}-${dateLocal.getDay()}`;
+  if (today === dateLocal) {
+    return true;
+  } else return false;
+
 }
 
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.nav__link')) {
+    if (isFreshData()) {
+      clearValute();
+      printValute(JSON.parse(localStorage.getItem('Valute')));
+    }
     clearValute();
-    obj = await getData();
-    printValute();
+    let obj = await getData();
+    localStorage.setItem('Valute', JSON.stringify(obj));
+    printValute(obj);
   }
 
   if (event.target.closest('.btn') && event.target.hasAttribute('id')) {
-    showPopup(filterObject(event.target)[0]);
+    showPopupId(event.target.id);
   }
 
   if (event.target.closest('.popup__close')) {
@@ -42,16 +58,16 @@ document.addEventListener('click', async (event) => {
   }
 })
 
-function filterObject(inputId) {
-  return Object.values(obj.Valute).filter(item => {
-    if (item.ID === inputId.getAttribute('id')) { return item; }
-  });
+function showPopupId(id) {
+  document.getElementById(`popup${id}`).classList.add('open');
 }
 
-function printValute() {
+function printValute(obj) {
   try {
     const containerMain = document.querySelector('main');
-    Object.values(obj.Valute).forEach(item => { containerMain.insertAdjacentHTML('beforeEnd', printValuteItem(item)) })
+    Object.values(obj.Valute).forEach(item => {
+      containerMain.insertAdjacentHTML('beforeEnd', printValuteItem(item));
+    })
   } catch (error) {
     showPopupMessage(`Произошла ошибка при обработке данных: ${error.message}`);
   }
@@ -59,44 +75,38 @@ function printValute() {
 }
 
 function showPopupMessage(message) {
-  let messageBody = `
-    <div id = "pupup__valute">
-      <p>${message}</p>
-    </div>`;
-  document.querySelector('.popup__content').insertAdjacentHTML('beforeend', messageBody);
-  document.getElementById('popup').classList.add('open');
-}
-
-function showPopup(object) {
-  document.getElementById('popup').classList.add('open');
-  document.querySelector('.popup__content').insertAdjacentHTML('beforeend', prinyValuteElement(object));
+  alert(message);
 }
 
 function closePopup() {
-  document.getElementById('popup').classList.remove('open');
-  document.getElementById('pupup__valute').remove();
+  document.querySelectorAll('.popup').forEach(item => item.classList.remove('open'));
 }
 
 function clearValute() {
   document.querySelectorAll('.main__wrapper').forEach(elem => elem.remove());
-}
-
-function prinyValuteElement(item) {
-  return `
-    <div id = "pupup__valute">
-      <h1>${item.Name}</h1>
-      <h2>${item.CharCode}</h2>
-      <p>Предыдущий: ${item.Previous}</p>
-      <p>Текущий: ${item.Value}</p>
-    </div>
-  `;
+  document.querySelectorAll('.popup').forEach(elem => elem.remove());
 }
 
 function printValuteItem(item) {
   return `
     <div class = "main__wrapper">
-      <div class = "main__item">${item.CharCode}</div>
+      <div class = "main__item">${item.Name}</div>
       <button class = "btn" id = "${item.ID}">Подробнее</button>
     </div>
-    `;
+    <div id="popup${item.ID}" class="popup">
+      <div class="popup__body">
+        <div class="popup__content">
+          <a href="#" class="popup__close">X</a>
+          <div id = "pupup__valute">
+            <h1>${item.Name}</h1>
+            <h2>${item.CharCode}</h2>
+            <p>Предыдущий: ${item.Previous}</p>
+            <p>Текущий: ${item.Value}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
+
+
