@@ -26,13 +26,16 @@ async function getData() {
 
 function isFreshData() {
   let localDate = JSON.parse(localStorage.getItem('Valute'));
-  let today = new Date();
-  let dateLocal = new Date(localDate.Date);
-  today = `${today.getFullYear()}-${today.getMonth()}-${today.getDay()}`;
-  dateLocal = `${dateLocal.getFullYear()}-${dateLocal.getMonth()}-${dateLocal.getDay()}`;
-  if (today === dateLocal) {
-    return true;
-  } else return false;
+  if (localDate) {
+    let today = new Date();
+    let dateLocal = new Date(localDate.Date);
+    today = `${today.getFullYear()}-${today.getMonth()}-${today.getDay()}`;
+    dateLocal = `${dateLocal.getFullYear()}-${dateLocal.getMonth()}-${dateLocal.getDay()}`;
+    if (today === dateLocal) {
+      return true;
+    } else return false;
+  }
+  else return false;
 
 }
 
@@ -41,11 +44,12 @@ document.addEventListener('click', async (event) => {
     if (isFreshData()) {
       clearValute();
       printValute(JSON.parse(localStorage.getItem('Valute')));
+    } else {
+      clearValute();
+      let obj = await getData();
+      localStorage.setItem('Valute', JSON.stringify(obj));
+      printValute(obj);
     }
-    clearValute();
-    let obj = await getData();
-    localStorage.setItem('Valute', JSON.stringify(obj));
-    printValute(obj);
   }
 
   if (event.target.closest('.btn') && event.target.hasAttribute('id')) {
