@@ -28,9 +28,17 @@ async function getData() {
   }
 }
 
+function getFromLocalStorage() {
+  return localStorage.getItem('Valute');
+}
+
+function setToLocalStorage(obj) {
+  localStorage.setItem('Valute', JSON.stringify(obj));
+}
+
 function isFreshData() {
   if (localStorage.Valute) {
-    let localDate = JSON.parse(localStorage.getItem('Valute'));
+    let localDate = JSON.parse(getFromLocalStorage());
     let today = new Date();
     let dateLocal = new Date(localDate.Date);
 
@@ -47,14 +55,15 @@ function isFreshData() {
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.nav__link')) {
     const isFresh = isFreshData();
+
     if (isFresh) {
       clearValute();
-      printValute(JSON.parse(localStorage.getItem('Valute')));
+      printValute(JSON.parse(getFromLocalStorage()));
     } else {
-      clearValute();
-      showErrorMessage('берем новые данные');
       let obj = await getData();
-      localStorage.setItem('Valute', JSON.stringify(obj));
+      console.log('берем новые данные');
+      clearValute();
+      setToLocalStorage(obj);
       printValute(obj);
     }
   }
@@ -74,15 +83,11 @@ function showPopupId(id) {
 }
 
 function printValute(obj) {
-  try {
-    const containerMain = document.querySelector('main');
-    Object.values(obj.Valute).forEach(item => {
-      containerMain.insertAdjacentHTML('beforeEnd', printValuteItem(item));
-    })
-  } catch (error) {
-    showErrorMessage(`Произошла ошибка при обработке данных: ${error.message}`);
-  }
+  const containerMain = document.querySelector('main');
 
+  Object.values(obj.Valute).forEach(item => {
+    containerMain.insertAdjacentHTML('beforeEnd', printValuteItem(item));
+  })
 }
 
 function delErrorMessage() {
@@ -99,6 +104,7 @@ function showErrorMessage(message) {
       </div>
     </div>
   `;
+
   document.querySelector('main').insertAdjacentHTML('beforebegin', popupMessage);
   setTimeout(delErrorMessage, 5000);
 }
