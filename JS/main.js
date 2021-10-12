@@ -11,6 +11,10 @@
 // Сделать отрисовку кнопок по всем валютам, по нажатии на одну из них,
 // отрисовывать инфу именно по необходимой валюте.
 
+
+// Если ты постоянно обращаешься к localStorage то сделал бы для этого отдельную функцию в которой бы делал необходимые проверки
+
+
 const URLDATA = 'https://www.cbr-xml-daily.ru/daily_json.js';
 
 async function getData() {
@@ -19,33 +23,36 @@ async function getData() {
     return await responce.json();
   }
   catch (error) {
-    showPopupMessage(`Произошла ошибка при получении данных: ${error.message}`);
+    showErrorMessage(`Произошла ошибка при получении данных: ${error.message}`);
+    return [];
   }
-  return [];
 }
 
 function isFreshData() {
-  let localDate = JSON.parse(localStorage.getItem('Valute'));
-  if (localDate) {
+  if (localStorage.Valute) {
+    let localDate = JSON.parse(localStorage.getItem('Valute'));
     let today = new Date();
     let dateLocal = new Date(localDate.Date);
+
     today = `${today.getFullYear()}-${today.getMonth()}-${today.getDay()}`;
     dateLocal = `${dateLocal.getFullYear()}-${dateLocal.getMonth()}-${dateLocal.getDay()}`;
-    if (today === dateLocal) {
-      return true;
-    } else return false;
-  }
-  else return false;
 
+    if (today <= dateLocal) {
+      return true;
+    } else { return false };
+  }
+  else { return false; }
 }
 
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.nav__link')) {
-    if (isFreshData()) {
+    const isFresh = isFreshData();
+    if (isFresh) {
       clearValute();
       printValute(JSON.parse(localStorage.getItem('Valute')));
     } else {
       clearValute();
+      showErrorMessage('берем новые данные');
       let obj = await getData();
       localStorage.setItem('Valute', JSON.stringify(obj));
       printValute(obj);
@@ -73,13 +80,27 @@ function printValute(obj) {
       containerMain.insertAdjacentHTML('beforeEnd', printValuteItem(item));
     })
   } catch (error) {
-    showPopupMessage(`Произошла ошибка при обработке данных: ${error.message}`);
+    showErrorMessage(`Произошла ошибка при обработке данных: ${error.message}`);
   }
 
 }
 
-function showPopupMessage(message) {
-  alert(message);
+function delErrorMessage() {
+  let messageError = document.getElementById('error-message');
+  messageError.remove();
+}
+
+function showErrorMessage(message) {
+  let popupMessage = `
+    <div class="error-wrap" id = "error-message">
+      <div class="error">
+        <h2 class="error-h2">Произошла ошибка:</h2>
+        <p class="error-message">${message}</p>
+      </div>
+    </div>
+  `;
+  document.querySelector('main').insertAdjacentHTML('beforebegin', popupMessage);
+  setTimeout(delErrorMessage, 5000);
 }
 
 function closePopup() {

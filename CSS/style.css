@@ -92,3 +92,13 @@ a {
   top: 10px;
   color: black;
 }
+
+.error-wrap {
+  color: white;
+  width: 30%;
+  background-color: brown;
+  padding: 10px;
+  position: absolute;
+  border-end-end-radius: 30px;
+  opacity: .6;
+}
